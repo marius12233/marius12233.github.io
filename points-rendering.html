@@ -286,6 +286,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         addFloorBox();
 
         addPointsBox(10000);
+        addPointsBox(10000);
         //for(let i=0; i<10000; i++)
         //    addPointBox([getRandomInt(5), getRandomInt(5), getRandomInt(1)]);
       }
@@ -331,7 +332,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         let box_size = 0.01
 
         for(let i = 0; i < n; i++) {
-          boxBuilder.pushCube([getRandom(2), getRandom(2), 1], box_size);
+          let z = Math.random() > 0.5 ? 1 : -1
+          boxBuilder.pushCube([getRandom(2), getRandom(2), z], box_size);
         }
         let boxPrimitive = boxBuilder.finishPrimitive(renderer);
 
