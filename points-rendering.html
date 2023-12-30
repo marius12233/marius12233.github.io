@@ -259,6 +259,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         return Math.floor(Math.random() * max);
       }
 
+      function getRandom(max) {
+        return Math.random() * max;
+      }
+
       function initGL() {
         if (gl)
           return;
@@ -327,7 +331,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         let box_size = 0.01
 
         for(let i = 0; i < n; i++) {
-          boxBuilder.pushCube([getRandomInt(2), getRandomInt(2), getRandomInt(2)], box_size);
+          boxBuilder.pushCube([getRandom(2), getRandom(2), 1], box_size);
         }
         let boxPrimitive = boxBuilder.finishPrimitive(renderer);
 
