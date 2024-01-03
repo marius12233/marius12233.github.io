@@ -432,17 +432,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         //let z = selectNthElementsOfRows(arrPoints, row, col, 2);
 
         //let pointCloud = concatenateArrays(x, y, z);
-        //console.log(pointCloud);
         //pointCloud = scalePointCloudToUnitCube(pointCloud);
 
         let pointCloud = getPointCloud(arrPoints);
+        console.log(pointCloud);
         //pointCloud = scalePointCloudToUnitCube(pointCloud);
         //console.log(Math.max(pointCloud[0]));
         
 
         pointCloud.forEach((point) => 
-          boxBuilder.pushCube([point[0], point[2], -point[1]], box_size)
+          boxBuilder.pushCube([-point[1], point[2], -point[0]], box_size)
+          //boxBuilder.pushCube([point[0], point[1], point[2]], box_size)
         );
+
+        //boxBuilder.pushCube([1, 2, -1], 0.05);
+
         let boxPrimitive = boxBuilder.finishPrimitive(renderer);
 
         let boxMaterial = new PbrMaterial();
