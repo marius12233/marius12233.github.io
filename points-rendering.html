@@ -41,6 +41,44 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           box's color. Use joystick/touchpad input to move boxes in 2 dimensions.
           <a class="back" href="./index.html">Back</a>
         </p>
+        <div id="output"></div>
+
+
+        <label for="point_cloud_file">Select a file (JS implementatino):</label>
+        <input type="file" onchange="readFile(this)">
+
+        <script>
+        points = []
+        function readFile(input) {
+          let file = input.files[0];
+
+          let reader = new FileReader();
+
+          reader.readAsArrayBuffer(file);
+
+          reader.onload = function() {
+            console.log(reader.result);
+            let buffer = reader.result;
+            let float_arr = new Float32Array(buffer);
+            for(let i=0; i < Math.floor(float_arr.length) / 5; i++){
+              point = []
+              for(let j=0; j < 5; j++){
+                point.push(float_arr[i*5 + j]);
+              }
+              points.push(point);
+            }
+            console.log("Read points");
+            console.log(points.length);
+          };
+
+          reader.onerror = function() {
+            console.log(reader.error);
+          };
+
+        };
+        </script>
+
+
       </details>
     </header>
     <script type="module">
@@ -55,6 +93,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       import {mat4, vec3, quat} from './js/render/math/gl-matrix.js';
       import {InlineViewerHelper} from './js/util/inline-viewer-helper.js';
       import {QueryArgs} from './js/util/query-args.js';
+
+
 
       // If requested, use the polyfill to provide support for mobile devices
       // and devices which only support WebVR.
@@ -92,6 +132,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       const BOX_SEPARATION = 0.04;
       const BOX_SET_HEIGHT = 0.03;
       const BOX_SET_DEPTH = -0.06;
+
 
       class GamepadBox extends Node {
         constructor(position) {
@@ -251,7 +292,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             xrButton.enabled = supported;
           });
 
-          navigator.xr.requestSession('inline').then(onSessionStarted);
+          //navigator.xr.requestSession('inline').then(onSessionStarted);
         }
       }
 
@@ -285,8 +326,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         addFloorBox();
 
-        addPointsBox(10000);
-        addPointsBox(10000);
+        console.log(points.length);
+        addPointsBox(points);
+        //addPointsBox(100000);
+
+        //var points = pyscript.interpreter.globals.get('points')();
         //for(let i=0; i<10000; i++)
         //    addPointBox([getRandomInt(5), getRandomInt(5), getRandomInt(1)]);
       }
@@ -327,24 +371,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         mat4.translate(pointNode.matrix, pointNode.matrix, position);
       }
 
-      function addPointsBox(n) {
+      function addPointsBox(arrPoints) {
         let boxBuilder = new BoxBuilder();
-        let box_size = 0.01
+        let box_size = 0.005
 
-        for(let i = 0; i < n; i++) {
-          let z = Math.random() > 0.5 ? 1 : -1
-          boxBuilder.pushCube([getRandom(2), getRandom(2), z], box_size);
-        }
+        //for(let i = 0; i < n; i++) {
+        //  let x = Math.random() > 0.5 ? getRandom(2) : -getRandom(2)
+        //  let y = Math.random() > 0.5 ? getRandom(2) : -getRandom(2)
+        //  let z = Math.random() > 0.5 ? getRandom(2) : -getRandom(2)
+          
+        //  boxBuilder.pushCube([x, y, z], box_size);
+        //}
+        arrPoints.forEach((point) => 
+          boxBuilder.pushCube([point[0], point[1], point[2]], box_size)
+        );
         let boxPrimitive = boxBuilder.finishPrimitive(renderer);
 
         let boxMaterial = new PbrMaterial();
         boxMaterial.baseColorFactor.value = [1.0, 0.3, 0.3, 1.0];
         let boxRenderPrimitive = renderer.createRenderPrimitive(boxPrimitive, boxMaterial);
 
-        let pointNode = new Node();
-        pointNode.addRenderPrimitive(boxRenderPrimitive);
-        pointNode.selectable = true;
-        scene.addNode(pointNode);
+        let pointsNode = new Node();
+        pointsNode.addRenderPrimitive(boxRenderPrimitive);
+        pointsNode.selectable = true;
+        scene.addNode(pointsNode);
         //mat4.identity(pointNode.matrix);
         //mat4.translate(pointNode.matrix, pointNode.matrix, position);
       }
@@ -416,6 +466,48 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       // Start the XR application.
       initXR();
+
     </script>
+
+    <py-script>
+        import asyncio
+        import js
+        from js import document, FileReader
+        from pyodide.ffi import create_proxy
+        import numpy as np
+
+        points = []
+
+        def read_complete(event):
+          global points
+          print("Result: ", event.target.result.to_py()[0])
+          scan = np.frombuffer(event.target.result.to_bytes(), dtype=np.float32)
+          point_cloud = scan.reshape(-1, 5)[:, :4]
+          print(point_cloud.shape)
+          points += point_cloud.tolist()
+
+        async def process_file(event):
+          fileList = document.getElementById("point_cloud_file").files
+          #fileList = event.target.files.to_py()
+          onload_event = create_proxy(read_complete)
+          for f in fileList:
+            reader = FileReader.new()
+            reader.onload = onload_event
+            reader.readAsArrayBuffer(f)
+
+           # buffer = await f.bytes()
+            
+            #document.getElementById("content").innerHTML = data
+        
+        def main_process():
+          # Create the proxy for the callback
+          file_event = create_proxy(process_file)
+
+          e = document.getElementById("point_cloud_file")
+          e.addEventListener("change", file_event, False)
+
+        main_process()
+        #points = read_point_cloud("point_cloud.bin", 4)
+        </py-script>
   </body>
 </html>
