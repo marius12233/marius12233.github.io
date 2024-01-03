@@ -436,12 +436,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         //pointCloud = scalePointCloudToUnitCube(pointCloud);
 
         let pointCloud = getPointCloud(arrPoints);
-        pointCloud = scalePointCloudToUnitCube(pointCloud);
-        console.log(pointCloud);
+        //pointCloud = scalePointCloudToUnitCube(pointCloud);
+        //console.log(Math.max(pointCloud[0]));
         
 
         pointCloud.forEach((point) => 
-          boxBuilder.pushCube([point[0], point[1], point[2]], box_size)
+          boxBuilder.pushCube([point[0], point[2], -point[1]], box_size)
         );
         let boxPrimitive = boxBuilder.finishPrimitive(renderer);
 
